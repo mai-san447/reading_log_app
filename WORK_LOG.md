@@ -51,3 +51,11 @@
 - `reading_log/config.local.php` はサーバーに必要ですが、GitHubには上げません。
 - `reading_log/books-config.js` はGoogle Books APIキーを入れるファイルなので、GitHubには上げません。
 - FTPでアップする時も、デバッグログや不要な検証ファイルはアップしません。
+
+## 2026-07-05 README追記方針の追加
+
+### 作業内容
+
+- READMEの末尾に「README更新方針」を追記しました。
+- READMEの末尾に「更新履歴」を追加し、今後の変更を追記していく形にしました。
+- 指定リポジトリ `mai-san447/reading_log_app` に更新を入れるためのブランチを作成しました。
