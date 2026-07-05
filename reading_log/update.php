@@ -2,10 +2,11 @@
 require_once __DIR__ . '/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php');
+    header('Location: select.php');
     exit();
 }
 
+$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 $title = isset($_POST['title']) ? trim($_POST['title']) : '';
 $author = isset($_POST['author']) ? trim($_POST['author']) : '';
 $acquisitionMethod = isset($_POST['acquisition_method']) ? trim($_POST['acquisition_method']) : 'その他';
@@ -18,25 +19,20 @@ $learningAxis = isset($_POST['learning_axis']) ? normalizeLearningAxis($_POST['l
 $exitAction = isset($_POST['exit_action']) ? normalizeExitAction($_POST['exit_action']) : '未定';
 $returnDueDate = isset($_POST['return_due_date']) ? normalizeReturnDueDate($_POST['return_due_date']) : '';
 $readingNote = isset($_POST['learning_note']) ? cleanReadingNote($_POST['learning_note']) : '';
-$readingStatus = isset($_POST['status']) ? trim($_POST['status']) : '読了';
-$coverImage = isset($_POST['cover_image']) ? trim($_POST['cover_image']) : '';
+$status = isset($_POST['status']) ? trim($_POST['status']) : '読了';
 
-if ($title === '' || $author === '') {
-    exit('タイトルと著者を入力してください。');
-}
-
-if (!isValidHttpUrl($coverImage)) {
-    exit('表紙画像URLが正しくありません。');
+if ($id === 0 || $title === '' || $author === '') {
+    exit('IDまたは必須項目が不足しています。');
 }
 
 try {
     $pdo = connectDb();
-
-    $sql = 'INSERT INTO gs_reading_log (`title`, `author`, `cover_image`, `acquisition_method`, `theme`, `price`, `recovery_amount`, `page_count`, `value_score`, `learning_axis`, `exit_action`, `return_due_date`, `learning_note`, `status`, `memo`) VALUES (:title, :author, :cover_image, :acquisition_method, :theme, :price, :recovery_amount, :page_count, :value_score, :learning_axis, :exit_action, :return_due_date, :learning_note, :status, :memo)';
+    $sql = 'UPDATE gs_reading_log SET title = :title, author = :author, acquisition_method = :acquisition_method, theme = :theme, price = :price, recovery_amount = :recovery_amount, page_count = :page_count, value_score = :value_score, learning_axis = :learning_axis, exit_action = :exit_action, return_due_date = :return_due_date, learning_note = :learning_note, status = :status, memo = :memo WHERE id = :id';
     $stmt = $pdo->prepare($sql);
+
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->bindValue(':title', $title, PDO::PARAM_STR);
     $stmt->bindValue(':author', $author, PDO::PARAM_STR);
-    $stmt->bindValue(':cover_image', $coverImage, PDO::PARAM_STR);
     $stmt->bindValue(':acquisition_method', $acquisitionMethod, PDO::PARAM_STR);
     $stmt->bindValue(':theme', $theme, PDO::PARAM_STR);
     $stmt->bindValue(':price', $price, PDO::PARAM_INT);
@@ -47,7 +43,7 @@ try {
     $stmt->bindValue(':exit_action', $exitAction, PDO::PARAM_STR);
     $stmt->bindValue(':return_due_date', $returnDueDate !== '' ? $returnDueDate : null, $returnDueDate !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
     $stmt->bindValue(':learning_note', $readingNote, PDO::PARAM_STR);
-    $stmt->bindValue(':status', $readingStatus, PDO::PARAM_STR);
+    $stmt->bindValue(':status', $status, PDO::PARAM_STR);
     $stmt->bindValue(':memo', $readingNote, PDO::PARAM_STR);
 
     $executeStatus = $stmt->execute();
@@ -57,10 +53,10 @@ try {
         throw new Exception('QueryError: ' . (isset($error[2]) ? $error[2] : 'unknown error'));
     }
 
-    header('Location: select.php?saved=1');
+    header('Location: select.php');
     exit();
 } catch (Exception $e) {
     header('Content-Type: text/plain; charset=UTF-8');
-    echo 'InsertError: ' . $e->getMessage();
+    echo 'UpdateError: ' . $e->getMessage();
     exit();
 }
