@@ -26,11 +26,15 @@ if ($title === '' || $author === '') {
     exit('タイトルと著者を入力してください。');
 }
 
-if (!isValidHttpUrl($coverImage)) {
-    exit('表紙画像URLが正しくありません。');
-}
-
 try {
+    // ★PHP05応用：画像がアップロードされたら、それを表紙にする（Google BooksのURLより優先）
+    $uploadedPath = handleCoverUpload('cover_upload');
+    if ($uploadedPath !== '') {
+        $coverImage = $uploadedPath;
+    } elseif ($coverImage !== '' && !isValidHttpUrl($coverImage)) {
+        throw new Exception('表紙画像URLが正しくありません。');
+    }
+
     $pdo = connectDb();
 
     $sql = 'INSERT INTO gs_reading_log (`title`, `author`, `cover_image`, `acquisition_method`, `theme`, `price`, `recovery_amount`, `page_count`, `value_score`, `learning_axis`, `exit_action`, `return_due_date`, `learning_note`, `status`, `memo`) VALUES (:title, :author, :cover_image, :acquisition_method, :theme, :price, :recovery_amount, :page_count, :value_score, :learning_axis, :exit_action, :return_due_date, :learning_note, :status, :memo)';

@@ -2,3 +2,7 @@ config.local.php
 books-config.js
 insert-debug.log
 debug.php
+
+# アップロードされた表紙画像は成果物なのでGit管理しない（フォルダだけ残す）
+img/*
+!img/.gitkeep

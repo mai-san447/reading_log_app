@@ -174,6 +174,61 @@ function isValidHttpUrl($value)
         && preg_match('/^https?:\/\//', $value) === 1;
 }
 
+// ★PHP05の応用：アップロードされた表紙画像を安全に保存し、DB/imgタグで使う相対パス（img/xxx.jpg）を返す。
+//   画像が選ばれていなければ '' を返す。おかしなファイルは例外を投げて呼び出し側で止める。
+//   安全のため：本当に画像か検証／拡張子はホワイトリスト／ファイル名はランダム（ユーザー名は使わない）／サイズ上限。
+function handleCoverUpload($fieldName, $destDir = null, $maxBytes = 5242880)
+{
+    // 未選択（UPLOAD_ERR_NO_FILE）なら何もしない
+    if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+
+    $file = $_FILES[$fieldName];
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('画像のアップロードに失敗しました（エラーコード: ' . (int)$file['error'] . '）。');
+    }
+
+    // サイズ上限（既定5MB）
+    if ($file['size'] > $maxBytes) {
+        throw new Exception('画像が大きすぎます（' . round($maxBytes / 1048576, 1) . 'MBまで）。');
+    }
+
+    // 本当に画像かを中身で判定し、安全な拡張子に対応づける（拡張子や名前は信用しない）
+    $info = @getimagesize($file['tmp_name']);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+    ];
+    $mime = ($info !== false && isset($info['mime'])) ? $info['mime'] : '';
+    if (!isset($allowed[$mime])) {
+        throw new Exception('対応していない画像形式です（JPEG / PNG / GIF / WebP のみ）。');
+    }
+    $ext = $allowed[$mime];
+
+    // 保存先フォルダ（無ければ作る）
+    if ($destDir === null) {
+        $destDir = __DIR__ . '/img';
+    }
+    if (!is_dir($destDir) && !mkdir($destDir, 0755, true) && !is_dir($destDir)) {
+        throw new Exception('保存先フォルダ（img）を作成できませんでした。');
+    }
+
+    // ランダムなファイル名にして上書き・パス改ざんを防ぐ
+    $fileName = uniqid('cover_', true) . '.' . $ext;
+    $destPath = $destDir . '/' . $fileName;
+
+    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        throw new Exception('画像の保存に失敗しました。imgフォルダの書き込み権限を確認してください。');
+    }
+
+    // ページから <img src> やDBに入れる相対パスを返す
+    return 'img/' . $fileName;
+}
+
 function normalizePrice($value)
 {
     $price = (int)$value;
