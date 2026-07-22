@@ -47,9 +47,18 @@ function loadConfig()
 
 function connectDb()
 {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
+    if (isLocalRequest()) {
+        // ローカル開発中はエラーを画面に出して原因を追いやすくする
+        ini_set('display_errors', '1');
+        ini_set('display_startup_errors', '1');
+        error_reporting(E_ALL);
+    } else {
+        // 公開先ではエラー内容を画面に出さない（情報漏えい対策）。記録だけ残す
+        ini_set('display_errors', '0');
+        ini_set('display_startup_errors', '0');
+        ini_set('log_errors', '1');
+        error_reporting(E_ALL);
+    }
 
     $config = loadConfig();
 
@@ -123,6 +132,16 @@ function ensureColumnExists($pdo, $tableName, $columnName, $columnDefinition)
     }
 
     $pdo->exec("ALTER TABLE {$tableName} ADD {$columnName} {$columnDefinition}");
+}
+
+// ★会員登録の合言葉（招待コード）を返す。空 '' なら「誰でも登録可」。
+//   公開先の config.local.php で 'register_code' を設定すると、
+//   その合言葉を知っている人だけが会員登録できる（無断登録を防ぐ）。
+//   ※ローカル(localhost)では loadConfig() が合言葉なしの設定を返すので常に開放（開発しやすさ優先）。
+function getRegisterCode()
+{
+    $config = loadConfig();
+    return isset($config['register_code']) ? trim((string)$config['register_code']) : '';
 }
 
 // ★門番：ログインしているか確認する。していなければログインページへ追い返す

@@ -17,6 +17,18 @@ if ($login_id === '' || $login_pw === '') {
     exit();
 }
 
+// 1-2. 合言葉（招待コード）チェック
+//   公開先で 'register_code' が設定されていれば、正しい合言葉が無いと登録させない。
+//   hash_equals は「時間差から合言葉を推測される攻撃」を防ぐための安全な比較。
+$requiredCode = getRegisterCode();
+if ($requiredCode !== '') {
+    $inputCode = trim((string)($_POST['register_code'] ?? ''));
+    if (!hash_equals($requiredCode, $inputCode)) {
+        header('Location: register.php?error=code');
+        exit();
+    }
+}
+
 $pdo = connectDb();
 
 // 2. 同じIDがすでに登録されていないか確認する
