@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: select.php');

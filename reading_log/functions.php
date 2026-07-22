@@ -83,6 +83,16 @@ function connectDb()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
         );
 
+        // ★ログイン用：ユーザーを保管する表を自動で作る
+        $pdo->exec(
+            "CREATE TABLE IF NOT EXISTS gs_user_table (
+                id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                login_id VARCHAR(255) NOT NULL UNIQUE,
+                login_pw VARCHAR(255) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+        );
+
         ensureColumnExists($pdo, 'gs_reading_log', 'cover_image', 'TEXT');
         ensureColumnExists($pdo, 'gs_reading_log', 'theme', 'VARCHAR(64)');
         ensureColumnExists($pdo, 'gs_reading_log', 'price', 'INT NOT NULL DEFAULT 0');
@@ -113,6 +123,21 @@ function ensureColumnExists($pdo, $tableName, $columnName, $columnDefinition)
     }
 
     $pdo->exec("ALTER TABLE {$tableName} ADD {$columnName} {$columnDefinition}");
+}
+
+// ★門番：ログインしているか確認する。していなければログインページへ追い返す
+function loginCheck()
+{
+    // セッションがまだ始まっていなければ始める
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // 合言葉（chk_ssid）が、いまのセッションIDと一致しなければ「入っちゃダメ」
+    if (!isset($_SESSION['chk_ssid']) || $_SESSION['chk_ssid'] !== session_id()) {
+        header('Location: login.php');
+        exit();
+    }
 }
 
 function h($value)

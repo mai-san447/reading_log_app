@@ -1,3 +1,8 @@
+<?php
+// ★このページはログインしないと見られない
+require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
+?>
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -18,6 +23,7 @@
             <a href="select.php">本棚</a>
             <a href="analytics.php">ダッシュボード</a>
             <a href="log.php">読書レビュー</a>
+            <a href="logout.php">ログアウト</a>
         </nav>
     </header>
 

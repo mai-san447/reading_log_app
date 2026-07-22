@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 $pdo = connectDb();
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 $pdo = connectDb();
 
 $stmt = $pdo->prepare('SELECT * FROM gs_reading_log ORDER BY created_at DESC');
@@ -315,6 +316,7 @@ function renderInventoryCandidates($items)
             <a href="select.php">本棚</a>
             <a href="analytics.php" class="active" aria-current="page">ダッシュボード</a>
             <a href="log.php">読書レビュー</a>
+            <a href="logout.php">ログアウト</a>
         </nav>
     </header>
 
