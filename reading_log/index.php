@@ -1,3 +1,8 @@
+<?php
+// ★このページはログインしないと見られない
+require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
+?>
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -18,6 +23,7 @@
             <a href="select.php">本棚</a>
             <a href="analytics.php">ダッシュボード</a>
             <a href="log.php">読書レビュー</a>
+            <a href="logout.php">ログアウト</a>
         </nav>
     </header>
 
@@ -74,11 +80,15 @@
             </div>
         </section>
 
-        <form action="insert.php" method="post">
+        <form action="insert.php" method="post" enctype="multipart/form-data">
             <fieldset>
                 <legend>知識資産として登録する</legend>
 
                 <input type="hidden" id="cover_image" name="cover_image" value="">
+
+                <label for="cover_upload">表紙画像をアップロード（任意）</label>
+                <input type="file" id="cover_upload" name="cover_upload" accept="image/*">
+                <p class="field-help">自分の画像を使う場合に選択（Google Booksの表紙より優先されます）</p>
 
                 <label for="title">本のタイトル</label>
                 <input type="text" id="title" name="title" required placeholder="例：7つの習慣">

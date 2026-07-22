@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 $pdo = connectDb();
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -55,11 +56,22 @@ if ($readingNote === '') {
             <h2>読書レビュー / 知識資産</h2>
         </section>
 
-        <form action="update.php" method="post">
+        <form action="update.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo h($row['id']); ?>">
 
             <fieldset>
                 <legend>知識資産の内容を修正する</legend>
+
+                <label>現在の表紙</label>
+                <?php if (!empty($row['cover_image'])): ?>
+                    <img src="<?php echo h($row['cover_image']); ?>" alt="現在の表紙" style="max-width:120px;height:auto;display:block;margin-bottom:8px;">
+                <?php else: ?>
+                    <p class="field-help">表紙画像なし</p>
+                <?php endif; ?>
+
+                <label for="cover_upload">表紙画像を変更（任意）</label>
+                <input type="file" id="cover_upload" name="cover_upload" accept="image/*">
+                <p class="field-help">選ぶと今の表紙を差し替えます（未選択なら今のまま）</p>
 
                 <label for="title">本のタイトル</label>
                 <input type="text" id="title" name="title" required placeholder="例：7つの習慣" value="<?php echo h($row['title']); ?>">

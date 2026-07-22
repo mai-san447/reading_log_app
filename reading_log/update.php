@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: select.php');
@@ -26,10 +27,17 @@ if ($id === 0 || $title === '' || $author === '') {
 }
 
 try {
+    // ★PHP05応用：画像がアップロードされたら表紙を差し替える（未選択なら今の表紙のまま）
+    $uploadedPath = handleCoverUpload('cover_upload');
+    $coverClause = $uploadedPath !== '' ? 'cover_image = :cover_image, ' : '';
+
     $pdo = connectDb();
-    $sql = 'UPDATE gs_reading_log SET title = :title, author = :author, acquisition_method = :acquisition_method, theme = :theme, price = :price, recovery_amount = :recovery_amount, page_count = :page_count, value_score = :value_score, learning_axis = :learning_axis, exit_action = :exit_action, return_due_date = :return_due_date, learning_note = :learning_note, status = :status, memo = :memo WHERE id = :id';
+    $sql = 'UPDATE gs_reading_log SET ' . $coverClause . 'title = :title, author = :author, acquisition_method = :acquisition_method, theme = :theme, price = :price, recovery_amount = :recovery_amount, page_count = :page_count, value_score = :value_score, learning_axis = :learning_axis, exit_action = :exit_action, return_due_date = :return_due_date, learning_note = :learning_note, status = :status, memo = :memo WHERE id = :id';
     $stmt = $pdo->prepare($sql);
 
+    if ($uploadedPath !== '') {
+        $stmt->bindValue(':cover_image', $uploadedPath, PDO::PARAM_STR);
+    }
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->bindValue(':title', $title, PDO::PARAM_STR);
     $stmt->bindValue(':author', $author, PDO::PARAM_STR);

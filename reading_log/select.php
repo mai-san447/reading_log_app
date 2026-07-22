@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/functions.php';
+loginCheck(); // ← ログインしていない人はここで止める（門番）
 $pdo = connectDb();
 
 $saved = isset($_GET['saved']) && $_GET['saved'] === '1';
@@ -33,6 +34,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <a href="select.php" class="active" aria-current="page">本棚</a>
             <a href="analytics.php">ダッシュボード</a>
             <a href="log.php">読書レビュー</a>
+            <a href="logout.php">ログアウト</a>
         </nav>
     </header>
 
